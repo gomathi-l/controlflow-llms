@@ -1,0 +1,34 @@
+from,to,count
+O_Create Offer,O_Created,42914
+O_Created,O_Sent (mail and online),39631
+O_Sent (mail and online),O_Cancelled,16348
+O_Sent (mail and online),O_Returned,22226
+O_Returned,O_Accepted,17212
+O_Created,O_Cancelled,1222
+O_Created,O_Sent (online only),2020
+O_Sent (online only),O_Returned,1032
+O_Returned,O_Refused,3567
+O_Sent (mail and online),O_Refused,967
+O_Returned,O_Cancelled,2454
+O_Sent (online only),O_Cancelled,874
+O_Sent (mail and online),O_Accepted,16
+O_Accepted,O_Returned,16
+O_Create Offer,O_Sent (mail and online),34
+O_Refused,O_Created,5
+O_Cancelled,O_Sent (mail and online),22
+O_Created,O_Returned,24
+O_Accepted,O_Sent (mail and online),12
+O_Sent (online only),O_Refused,101
+O_Cancelled,O_Create Offer,21
+O_Created,O_Refused,60
+O_Accepted,O_Create Offer,14
+O_Cancelled,O_Created,25
+O_Create Offer,O_Sent (online only),4
+O_Refused,O_Returned,6
+O_Accepted,O_Created,8
+O_Refused,O_Create Offer,7
+O_Refused,O_Sent (mail and online),8
+O_Cancelled,O_Returned,1
+O_Sent (mail and online),O_Create Offer,1
+O_Accepted,O_Sent (online only),1
+O_Cancelled,O_Sent (online only),1
