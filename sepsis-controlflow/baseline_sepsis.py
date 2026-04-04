@@ -48,11 +48,9 @@ def set_seed(seed):
 with open("traces.pkl", "rb") as f:
     traces = pickle.load(f)
 
-with open("clean_rules.pkl", "rb") as f:
-    clean_rules = pickle.load(f)
 
 traces = traces.tolist()
-valid_edges = set(clean_rules.keys())
+
 
 EVENTS_LIST = sorted(list({e for t in traces for e in t}))
 NUM_EVENTS = len(EVENTS_LIST)
@@ -380,6 +378,12 @@ for seed in SEEDS:
     split = int(TRAIN_RATIO * len(shuffled))
     train = shuffled[:split]
     test  = shuffled[split:]
+    # +  train for gvr fix
+    _train_rules = Counter()
+    for t in train:
+        for i in range(len(t) - 1):
+            _train_rules[(t[i], t[i+1])] += 1
+    valid_edges = set(_train_rules.keys())
 
     examples = build_examples_from_traces(test)
     print("Evaluation examples:", len(examples))

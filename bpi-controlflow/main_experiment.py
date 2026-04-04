@@ -8,18 +8,14 @@ import numpy as np
 import editdistance
 from anthropic import Anthropic
 from openai import OpenAI
-
+from collections import Counter
 
 # Load data
 
 with open("traces.pkl", "rb") as f:
     traces = pickle.load(f)
-
-with open("clean_rules.pkl", "rb") as f:
-    clean_rules = pickle.load(f)
-
 traces = traces.tolist()
-valid_edges = set(clean_rules.keys())
+
 
 EVENTS_LIST = sorted(list({e for t in traces for e in t}))
 
@@ -117,9 +113,10 @@ for model_name, (provider, model_id) in MODELS.items():
             train_traces = shuffled[:split_idx]
             test_traces = shuffled[split_idx:]
 
-            # Build train candidates and their ID token lists once per seed
+            # Build train candidates + changese to train only grammar for GVR
             train_candidates = []
             train_candidate_id_seqs = []
+            _train_rules = Counter()
 
             for t in train_traces:
                 for i in range(1, len(t)):
@@ -127,6 +124,10 @@ for model_name, (provider, model_id) in MODELS.items():
                     nxt = t[i]
                     train_candidates.append((p, nxt))
                     train_candidate_id_seqs.append([event_to_id[e] for e in p])
+                for i in range(len(t) - 1):
+                    _train_rules[(t[i], t[i+1])] += 1
+
+            valid_edges = set(k for k, v in _train_rules.items() if v >= 100)
 
             # Build test examples once per seed
             examples = []
