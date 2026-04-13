@@ -48,9 +48,10 @@ def set_seed(seed):
 with open("traces.pkl", "rb") as f:
     traces = pickle.load(f)
 
+with open("clean_rules.pkl", "rb") as f:
+    clean_rules = pickle.load(f)
 
 traces = traces.tolist()
-
 
 EVENTS_LIST = sorted(list({e for t in traces for e in t}))
 NUM_EVENTS = len(EVENTS_LIST)
@@ -128,7 +129,7 @@ def accuracy_from_predictions(examples, predictions):
     return correct / len(examples)
 
 
-def gvr_from_predictions(examples, predictions):
+def gvr_from_predictions(examples, predictions, valid_edges):
 
     violations = 0
 
@@ -378,12 +379,15 @@ for seed in SEEDS:
     split = int(TRAIN_RATIO * len(shuffled))
     train = shuffled[:split]
     test  = shuffled[split:]
-    # +  train for gvr fix
-    _train_rules = Counter()
+
+    # Build valid edges from train split only, intersected with clean_rules
+    # to apply the MIN_COUNT noise filter — prevents both test leakage and noisy edges
+    train_valid_edges = set()
     for t in train:
         for i in range(len(t) - 1):
-            _train_rules[(t[i], t[i+1])] += 1
-    valid_edges = set(_train_rules.keys())
+            pair = (t[i], t[i + 1])
+            if pair in clean_rules:
+                train_valid_edges.add(pair)
 
     examples = build_examples_from_traces(test)
     print("Evaluation examples:", len(examples))
@@ -392,7 +396,7 @@ for seed in SEEDS:
     markov = MarkovNextEventModel()
     markov.fit(train)
     preds = markov.predict(examples)
-    acc, gvr = accuracy_from_predictions(examples, preds), gvr_from_predictions(examples, preds)
+    acc, gvr = accuracy_from_predictions(examples, preds), gvr_from_predictions(examples, preds, train_valid_edges)
     results.append({"model": "markov", "seed": seed, "accuracy": acc, "gvr": gvr})
     print("Markov  ACC", acc, "GVR", gvr)
 
@@ -400,7 +404,7 @@ for seed in SEEDS:
     nn1 = OneNNSequenceMatcher()
     nn1.fit(train)
     preds = nn1.predict(examples)
-    acc, gvr = accuracy_from_predictions(examples, preds), gvr_from_predictions(examples, preds)
+    acc, gvr = accuracy_from_predictions(examples, preds), gvr_from_predictions(examples, preds, train_valid_edges)
     results.append({"model": "1nn", "seed": seed, "accuracy": acc, "gvr": gvr})
     print("1-NN    ACC", acc, "GVR", gvr)
 
@@ -409,7 +413,7 @@ for seed in SEEDS:
     lstm = LSTMBaseline()
     lstm.fit(train)
     preds = lstm.predict(examples)
-    acc, gvr = accuracy_from_predictions(examples, preds), gvr_from_predictions(examples, preds)
+    acc, gvr = accuracy_from_predictions(examples, preds), gvr_from_predictions(examples, preds, train_valid_edges)
     results.append({"model": "lstm", "seed": seed, "accuracy": acc, "gvr": gvr})
     print("LSTM    ACC", acc, "GVR", gvr)
 
